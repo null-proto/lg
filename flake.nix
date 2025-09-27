@@ -11,15 +11,21 @@
 	pkgs = nixpkgs.legacyPackages.${system};
 	in
 	{
-		devShells.${system}.default = pkgs.mkShell {
+		devShells.${system}.default = pkgs.mkShellNoCC {
 			buildInputs = with pkgs; [
+			  bear
+				pkg-config
 				clang-tools
 				clang
 				gnumake
+				pam
+				systemdLibs
 			];
 
 			shellHook = ''
 			export SHELL=${pkgs.fish}/bin/fish
+			make setup
+			bear -- make
 			exec $SHELL
 			'';
 		};
