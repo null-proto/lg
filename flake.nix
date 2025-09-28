@@ -23,10 +23,8 @@
 			];
 
 			shellHook = ''
-			export SHELL=${pkgs.fish}/bin/fish
 			make setup
 			bear -- make
-			exec $SHELL
 			'';
 		};
   };
