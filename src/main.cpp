@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "main.hpp"
 
 struct pam_conv_data {
   const char *password;
@@ -12,7 +13,7 @@ int conv_auth(int num_msg, const struct pam_message **msg,
             struct pam_response **resp, void *appdata_ptr) {
 
   struct pam_response *aresp = (struct pam_response *) calloc(num_msg, sizeof(struct pam_response));
-  struct pam_conv_data *data = (struct pam_conv_data *) appdata_ptr;
+  struct pam_conv_data *data = (pam_conv_data *) appdata_ptr;
 
   for (int i = 0; i < num_msg; i++) {
 
@@ -42,9 +43,9 @@ int main(int argc, char *argv[]) {
 
   const char *username = argv[1];
   const char *password = argv[2];
-  struct pam_conv_data conv_p = { .password = password };
+  pam_conv_data conv_p = { .password = password };
 
-  struct pam_conv conv = {conv_auth, &conv_p};
+  struct pam_conv conv = { conv_auth , &conv_p};
   pam_handle_t *pamh = NULL;
 
   if (pam_start("login", username, &conv, &pamh) != PAM_SUCCESS)
