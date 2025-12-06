@@ -1,19 +1,33 @@
 #include "help.h"
 #include "screen.h"
-#include "termios.h"
+#include "widget.h"
+
+#include <termios.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-void handle_resize(int sig) {
-	printf("resze");
-}
+#include <unistd.h>
+#include <sys/ioctl.h>
 
 struct termios* default_terminal;
 
+char** scr_buffer;
+
+struct winsize* term;
+
+
+void handle_resize(int sig) {
+  ioctl(STDOUT_FILENO, TIOCGWINSZ, term);
+  if (realloc(scr_buffer, (unsigned long)(term->ws_col * term->ws_row))) {
+		// die
+	}
+}
+
+
 int main(int argc, char **argv) {
 
+	if (argc>1)
   for (++argv; *argv; argv++) {
     if ((*argv)[0] == '-' && (*argv)[1] == '-') {
 
@@ -44,9 +58,16 @@ int main(int argc, char **argv) {
 	sa.sa_handler = handle_resize;
 	sigaction(SIGWINCH,&sa,NULL);
 
+	term = malloc(sizeof(struct winsize));
 	default_terminal = screen_init();
+	// --
+  ioctl(STDOUT_FILENO, TIOCGWINSZ, term);
+  scr_buffer = (char**) malloc((size_t)(term->ws_col * term->ws_row));
 
-	system("sleep 10");
+	widget_raster(term, scr_buffer);
+	winget_render(term,scr_buffer);
+
+	int _ = system("sleep 2");
 	screen_exit(default_terminal);
   return 0;
 }
