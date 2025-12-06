@@ -2,30 +2,27 @@
   description = "Display Manager on Linux VT";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
   };
 
   outputs = { self, nixpkgs ,... }:
 	let 
 	system = "x86_64-linux";
-	pkgs = nixpkgs.legacyPackages.${system};
+	pkgs = import nixpkgs { inherit system; };
 	in
 	{
-		devShells.${system}.default = pkgs.mkShellNoCC {
+		devShells.${system}.default = pkgs.mkShell {
 			buildInputs = with pkgs; [
 			  bear
-				pkg-config
+				ninja
 				clang-tools
+				pkg-config
+				cmake
+				cmake-language-server
 				clang
-				gnumake
 				pam
 				systemdLibs
 			];
-
-			shellHook = ''
-			make setup
-			bear -- make
-			'';
 		};
   };
 }
