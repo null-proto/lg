@@ -1,9 +1,16 @@
 #include "help.h"
 #include "screen.h"
 #include "termios.h"
+#include <signal.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+void handle_resize(int sig) {
+	printf("resze");
+}
+
+struct termios* default_terminal;
 
 int main(int argc, char **argv) {
 
@@ -33,10 +40,13 @@ int main(int argc, char **argv) {
     }
   }
 
-	struct termios* default_terminal = screen_init();
+	struct sigaction sa = {0};
+	sa.sa_handler = handle_resize;
+	sigaction(SIGWINCH,&sa,NULL);
 
+	default_terminal = screen_init();
 
+	system("sleep 10");
 	screen_exit(default_terminal);
-	free(default_terminal);
   return 0;
 }
