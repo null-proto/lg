@@ -1,12 +1,11 @@
 #include "help.h"
+#include "screen.h"
+#include "termios.h"
+#include <stdlib.h>
 #include <string.h>
 
-int main(int argc, char **argv) {
 
-  if (argc < 2) {
-    help_msg();
-    return 1;
-  }
+int main(int argc, char **argv) {
 
   for (++argv; *argv; argv++) {
     if ((*argv)[0] == '-' && (*argv)[1] == '-') {
@@ -34,5 +33,10 @@ int main(int argc, char **argv) {
     }
   }
 
+	struct termios* default_terminal = screen_init();
+
+
+	screen_exit(default_terminal);
+	free(default_terminal);
   return 0;
 }
