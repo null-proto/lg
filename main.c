@@ -2,72 +2,88 @@
 #include "screen.h"
 #include "widget.h"
 
-#include <termios.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/ioctl.h>
+#include <termios.h>
+#include <unistd.h>
 
-struct termios* default_terminal;
+struct termios *default_terminal;
 
-char** scr_buffer;
+char **scr_buffer;
 
-struct winsize* term;
-
+struct winsize *term;
 
 void handle_resize(int sig) {
   ioctl(STDOUT_FILENO, TIOCGWINSZ, term);
   if (realloc(scr_buffer, (unsigned long)(term->ws_col * term->ws_row))) {
-		// die
-	}
+    // die
+  }
 }
 
+int main(int argc, char **argv, char **env) {
 
-int main(int argc, char **argv) {
+  struct {
+    unsigned allow_all_terminal : 1;
+  } flags = {0};
 
-	if (argc>1)
-  for (++argv; *argv; argv++) {
-    if ((*argv)[0] == '-' && (*argv)[1] == '-') {
+  if (argc > 1)
+    for (++argv; *argv; argv++) {
+      if ((*argv)[0] == '-' && (*argv)[1] == '-') {
 
-      if (strncmp(*argv, "--help", 6) == 0) {
-        help_msg();
-        return 0;
+        if (strncmp(*argv, "--help", 6) == 0) {
+          help_msg();
+          return 0;
+        } else if (strncmp(*argv, "--allow-term", 6) == 0) {
+          flags.allow_all_terminal = 1;
+        } else {
+          help_name_wargs(*argv);
+        }
+
+      } else if ((*argv)[0] == '-' && (*argv)[1] != '\0') {
+        switch ((*argv)[1]) {
+        case 'h': {
+          help_msg();
+          return 0;
+        }
+        case 'a': {
+          flags.allow_all_terminal = 1;
+          break;
+        }
+        default:
+          help_name_wargs(*argv);
+          return 1;
+        }
+
       } else {
         help_name_wargs(*argv);
       }
-
-    } else if ((*argv)[0] == '-' && (*argv)[1] != '\0') {
-      switch ((*argv)[1]) {
-      case 'h': {
-        help_msg();
-        return 0;
-      }
-      default:
-        help_name_wargs(*argv);
-        return 1;
-      }
-
-    } else {
-      help_name_wargs(*argv);
     }
+
+  if (!flags.allow_all_terminal && strncmp(getenv("TERM"), "linux", 5)) {
+    printf("Unsupported terminal: expected tty [linux]\n");
+    return 1;
   }
 
-	struct sigaction sa = {0};
-	sa.sa_handler = handle_resize;
-	sigaction(SIGWINCH,&sa,NULL);
-
-	term = malloc(sizeof(struct winsize));
-	default_terminal = screen_init();
-	// --
+  term = malloc(sizeof(struct winsize));
   ioctl(STDOUT_FILENO, TIOCGWINSZ, term);
-  scr_buffer = (char**) malloc((size_t)(term->ws_col * term->ws_row));
 
-	widget_raster(term, scr_buffer);
-	winget_render(term,scr_buffer);
+  struct sigaction sa = {0};
+  sa.sa_handler = handle_resize;
+  sigaction(SIGWINCH, &sa, NULL);
 
-	int _ = system("sleep 2");
-	screen_exit(default_terminal);
+  default_terminal = screen_init();
+  // --
+  scr_buffer = (char **)malloc((size_t)(term->ws_col * term->ws_row));
+
+  widget_raster(term, scr_buffer);
+  winget_render(term, scr_buffer);
+
+  *scr_buffer = "example ";
+
+  int _ = system("sleep 2");
+  screen_exit(default_terminal);
   return 0;
 }

@@ -3,6 +3,7 @@
 
 void help_msg() {
 	printf("Usage: dm [options]...\n\n");
+	printf("    -a, --allow-term   -   removes tty only mode\n");
 	printf("    -h, --help   -   prints help message\n");
 }
 

@@ -5,8 +5,10 @@
 
 void winget_render(struct winsize *ws, char **scr_buffer){
 	printf("\x1b[0;0H\x1b[2J");
+	fflush(stdout);
 	for (unsigned r = 0; r<ws->ws_row; r++)
 		write(STDOUT_FILENO, scr_buffer[r],ws->ws_col);
+	fflush(stdout);
 }
 
 void widget_auth( struct winsize *ws,char **scr_buffer) {
